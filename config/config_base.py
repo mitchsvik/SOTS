@@ -14,6 +14,7 @@ MONGODB_CREDENTIALS = {
     'host': 'localhost',
     'port': 27017,
 }
+MONGODB_INSTANCE = 'sots'
 
 REDIS_CREDENTIALS = {
     'host': 'localhost',
