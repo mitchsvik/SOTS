@@ -1,0 +1,5 @@
+Flask==0.12.2
+Flask-RESTful==0.3.6
+peewee==3.2.2
+pymongo==3.6.1
+redis==2.10.6
