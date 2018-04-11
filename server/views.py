@@ -18,7 +18,7 @@ class UserList(Resource):
     """
     def get(self):
         user_data_list = user_collection.find({})
-        return {'response': [{'user_id': user_data.get('user_id', 0)} for user_data in user_data_list]}
+        return {'response': [{'user_id': user_data.get('user_id', None)} for user_data in user_data_list]}
 
 
 class User(Resource):
@@ -41,13 +41,24 @@ class TaskList(Resource):
     """
     def post(self, user_id):
         request_data = request.get_json()
-        task_end = time.time() + request_data['timeout']
+        timeout = request_data.get('timeout', None)
+        if timeout is None:
+            return {'error': "field 'timeout' is required for this request"}, 400
+        if not 10 <= timeout <= 600:
+            return {'error': "'timeout' should be between 10 and 600 seconds. Got {timeout}"
+                    .format(timeout=timeout)}, 400
+
+        task_end = time.time() + timeout
         task_id = uuid.uuid4().hex
-        user_collection.update_one(
-            {'user_id': user_id},
+        update_data = user_collection.update_one(
+            {'user_id': user_id, 'task_list.3': {'$exists': False}},
             {'$push': {'task_list': {'task_id': task_id, 'task_end': task_end}}}
         )
-        return {'response': task_id}, 201
+
+        if update_data.modified_count == 1:
+            return {'response': task_id}, 201
+        else:
+            return {'error': "Reached the limit of task list size"}, 429
 
 
 class Task(Resource):
