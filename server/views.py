@@ -1,3 +1,4 @@
+import math
 import time
 import uuid
 
@@ -6,11 +7,6 @@ from flask_restful import Resource
 
 from server.app import app_logger
 from server.connection import user_collection, task_queue
-
-
-def remove_object_id(instance):
-    instance.pop('_id')
-    return instance
 
 
 class UserList(Resource):
@@ -26,15 +22,37 @@ class User(Resource):
     """
     Show a single user field of view
     """
+    @staticmethod
+    def format_user_object(user_data, now):
+        def format_time(t):
+            # task will expire soon
+            if t < 0:
+                return '0s'
+            t = math.floor(t)
+            if t > 60:
+                return '{0}m:{1}s'.format(*divmod(t, 60))
+            else:
+                return '{0}s'.format(t)
+
+        task_list = map(
+            lambda task: 'Task {0}, timeLeft {1}'.format(task['task_id'], format_time(task['task_end']-now)),
+            user_data['task_list'])
+
+        response = 'Player{0}[{1},{2}] {3}'.format(
+            user_data['user_id'], user_data['x_pos'], user_data['y_pos'], '; '.join(task_list))
+        return response
+
     def get(self, user_id):
         user = user_collection.find_one({'user_id': user_id})
         if user is None:
             return {'error': 'User with id={} does not exists'.format(user_id)}, 404
+
         user_in_area = user_collection.find({
             'x_pos': {'$lt': user['x_pos'] + 16, '$gt': user['x_pos'] - 16},
             'y_pos': {'$lt': user['y_pos'] + 16, '$gt': user['y_pos'] - 16},
         })
-        response = [remove_object_id(user_data) for user_data in user_in_area]
+        now = time.time()
+        response = [self.format_user_object(user_data, now) for user_data in user_in_area]
         return {'response': response}
 
 
