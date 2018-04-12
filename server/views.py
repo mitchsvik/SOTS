@@ -27,6 +27,8 @@ class User(Resource):
     """
     def get(self, user_id):
         user = user_collection.find_one({'user_id': user_id})
+        if user is None:
+            return {'error': 'User with id={} does not exists'.format(user_id)}, 404
         user_in_area = user_collection.find({
             'x_pos': {'$lt': user['x_pos'] + 32, '$gt': user['x_pos'] - 32},
             'y_pos': {'$lt': user['y_pos'] + 32, '$gt': user['y_pos'] - 32},
@@ -43,9 +45,9 @@ class TaskList(Resource):
         request_data = request.get_json()
         timeout = request_data.get('timeout', None)
         if timeout is None:
-            return {'error': "field 'timeout' is required for this request"}, 400
+            return {'error': "Field 'timeout' is required for this request"}, 400
         if not 10 <= timeout <= 600:
-            return {'error': "'timeout' should be between 10 and 600 seconds. Got {timeout}"
+            return {'error': "Field 'timeout' should be between 10 and 600 seconds. Got {timeout}"
                     .format(timeout=timeout)}, 400
 
         task_end = time.time() + timeout
@@ -66,8 +68,11 @@ class Task(Resource):
     Delete user task
     """
     def delete(self, user_id, task_id):
-        user_collection.update_one(
+        updated_data = user_collection.update_one(
             {'user_id': user_id},
             {'$pull': {'task_list': {'task_id': task_id}}}
         )
-        return '', 204
+        if updated_data.modified_count == 1:
+            return '', 204
+        else:
+            return {'error': 'Task not found or already expired'}, 404
