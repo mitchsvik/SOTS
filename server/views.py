@@ -4,7 +4,7 @@ import uuid
 from flask import request
 from flask_restful import Resource
 
-from server.app import user_collection, task_queue
+from server.app import user_collection, task_queue, app_logger
 
 
 def remove_object_id(instance):
@@ -59,7 +59,9 @@ class TaskList(Resource):
 
         if update_data.modified_count == 1:
             # Task signature ['time', 'user_id', 'task_id', 'is_active']
-            task_queue.put((task_end, user_id, task_id, True))
+            task = (task_end, user_id, task_id, True)
+            task_queue.put(task)
+            app_logger.info('Created task by user {1} with id {2}, expires at {0}'.format(*task))
             return {'response': task_id}, 201
         else:
             return {'error': "Reached the limit of task list size"}, 429
@@ -80,7 +82,9 @@ class Task(Resource):
         if updated_data.modified_count == 1:
             task_end = matched_task[0].get('task_end')
             # Task signature ['time', 'user_id', 'task_id', 'is_active']
-            task_queue.put((task_end, user_id, task_id, False))
+            task = (task_end, user_id, task_id, False)
+            task_queue.put(task)
+            app_logger.info('Removed task by user {1} with id {2}'.format(*task))
             return '', 204
         else:
             return {'error': 'Task not found or already expired'}, 404

@@ -1,6 +1,7 @@
+from logging import FileHandler
 from queue import Queue
 
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, logging
 from flask_restful import Api
 
 import peewee
@@ -13,6 +14,12 @@ from server.taskmanager import TaskManager
 app = Flask(__name__)
 app.config.from_object('config.config')
 api = Api(app)
+
+file_handler = FileHandler('app_log.log')
+file_handler.setLevel(logging.DEBUG)
+app_logger = app.logger
+app_logger.setLevel(logging.DEBUG)
+app_logger.addHandler(file_handler)
 
 # In case you want url prefix for api routes
 # api_blueprint = Blueprint('API', 'api')
