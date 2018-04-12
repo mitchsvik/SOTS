@@ -4,7 +4,8 @@ import uuid
 from flask import request
 from flask_restful import Resource
 
-from server.app import user_collection, task_queue, app_logger
+from server.app import app_logger
+from server.connection import user_collection, task_queue
 
 
 def remove_object_id(instance):

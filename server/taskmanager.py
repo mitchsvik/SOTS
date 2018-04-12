@@ -8,10 +8,10 @@ class TaskManager(threading.Thread):
 
     def __init__(self, queue, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from server.app import user_collection
+        from server.connection import user_collection
 
         self.queue = queue
-        # self.daemon = True
+        self.daemon = True
         self.task_list = []
         self.user_collection = user_collection
         self.populate_from_collection()

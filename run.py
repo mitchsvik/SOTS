@@ -1,5 +1,5 @@
 #!usr/bin/python
-from server import app
+from server.init import app
 
 
 if __name__ == '__main__':
