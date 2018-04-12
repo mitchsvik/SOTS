@@ -33,14 +33,17 @@ class TaskManager(threading.Thread):
             if task_is_active:
                 # keep task list sorted may be faster than sort every timer cycle
                 for i, task_in_list in enumerate(self.task_list):
-                    if task_in_list[0] > task[0]:
-                        self.task_list.insert(i, task)
+                    if task_in_list[0] > valuable_slice[0]:
+                        self.task_list.insert(i, valuable_slice)
                         break
+                else:
+                    self.task_list.append(valuable_slice)
             else:
                 self.task_list.remove(valuable_slice)
 
     def run(self):
         while True:
+            self.pull_task()
             # sort active task list by task end time
             # sort list every cycle is overwork. List must be sorted all the time
             # self.task_list.sort(key=lambda t: t[0])

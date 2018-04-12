@@ -1,9 +1,13 @@
+from queue import Queue
+
 from flask import Flask, Blueprint
 from flask_restful import Api
 
 import peewee
 import pymongo
 import redis
+
+from server.taskmanager import TaskManager
 
 
 app = Flask(__name__)
@@ -20,3 +24,7 @@ client_redis = redis.StrictRedis(**app.config['REDIS_CREDENTIALS'])
 
 sots_instance = client_mongo[app.config.get('MONGODB_INSTANCE', 'sots')]
 user_collection = sots_instance.user_collection
+
+task_queue = Queue()
+task_manager = TaskManager(queue=task_queue)
+task_manager.start()

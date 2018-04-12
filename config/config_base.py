@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 LOCAL_SERVER_IP = '127.0.0.1'  # Your local ip-address for projects instance.
 LOCAL_SERVER_PORT = '5000'  # Your local server port for project.
 
