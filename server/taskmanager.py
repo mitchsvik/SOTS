@@ -14,6 +14,16 @@ class TaskManager(threading.Thread):
         # self.daemon = True
         self.task_list = []
         self.user_collection = user_collection
+        self.populate_from_collection()
+
+    def populate_from_collection(self):
+        user_cursor = self.user_collection.find()
+        for user in user_cursor:
+            for user_task in user.get('task_list'):
+                task = (user_task['task_end'], user['user_id'], user_task['task_id'])
+                self.task_list.append(task)
+        self.task_list.sort(key=lambda t: t[0])
+        print(list(self.task_list))
 
     def pull_task(self):
         # pull new tasks from queue
