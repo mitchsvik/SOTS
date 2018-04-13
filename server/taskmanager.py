@@ -13,6 +13,7 @@ class TaskManager(threading.Thread):
         self.queue = queue
         self.daemon = True
         self.task_list = []
+
         self.user_collection = user_collection
         self.populate_from_collection()
 
@@ -22,8 +23,8 @@ class TaskManager(threading.Thread):
             for user_task in user.get('task_list'):
                 task = (user_task['task_end'], user['user_id'], user_task['task_id'])
                 self.task_list.append(task)
+        # task list must be sorted by task end time
         self.task_list.sort(key=lambda t: t[0])
-        print(list(self.task_list))
 
     def pull_task(self):
         # pull new tasks from queue
@@ -35,7 +36,6 @@ class TaskManager(threading.Thread):
             except queue.Empty as e:
                 break
 
-            print(task)
             valuable_slice = task[:3]
             task_is_active = task[3]
             # must update task list before proceed
@@ -54,10 +54,8 @@ class TaskManager(threading.Thread):
     def run(self):
         while True:
             self.pull_task()
-            # sort active task list by task end time
-            # sort list every cycle is overwork. List must be sorted all the time
-            # self.task_list.sort(key=lambda t: t[0])
 
+            # Remove of expired tasks from collection
             now = time.time()
             expired_list = list(filter(lambda t: t[0] <= now, self.task_list))
             for expired_task in expired_list:
@@ -66,6 +64,7 @@ class TaskManager(threading.Thread):
                     {'$pull': {'task_list': {'task_id': expired_task[2]}}}
                 )
 
+            # Maximum possible value for delay == minimum task time
             self.task_list = self.task_list[len(expired_list):]
             until_next_task = (self.task_list[0][0] - now) if len(self.task_list) > 0 else 10
             until_next_task = 10 if until_next_task > 10 else until_next_task
