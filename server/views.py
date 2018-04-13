@@ -29,7 +29,7 @@ class User(Resource):
             if t < 0:
                 return '0s'
             t = math.floor(t)
-            if t > 60:
+            if t >= 60:
                 return '{0}m:{1}s'.format(*divmod(t, 60))
             else:
                 return '{0}s'.format(t)
