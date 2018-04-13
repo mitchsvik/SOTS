@@ -22,3 +22,5 @@ user_collection = sots_instance.user_collection
 if not user_collection.find_one({}):
     user_collection.insert_many(user_list_generator())
     user_collection.create_index([('user_id', pymongo.ASCENDING)], unique=True)
+    user_collection.create_index([('x_pos', pymongo.ASCENDING)])
+    user_collection.create_index([('y_pos', pymongo.ASCENDING)])
